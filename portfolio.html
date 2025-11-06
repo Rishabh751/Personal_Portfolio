@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rishabh Raj - Personal Portfolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <style>
+        /* General page styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5; /* Light grey page background */
+            color: #333; /* Default text color */
+            line-height: 1.6;
+            position: relative; /* Needed for canvas absolute positioning relative to body */
+            min-height: 100vh; /* Ensure body takes full viewport height for canvas */
+            overflow-x: hidden; /* Prevent horizontal scroll due to canvas */
+        }
+
+        /* --- Canvas Background Styling --- */
+        #backgroundCanvas {
+            position: fixed; /* Fixed position to cover the whole viewport */
+            top: 0;
+            left: 0;
+            width: 100vw;   /* Take full viewport width */
+            height: 100vh;  /* Take full viewport height */
+            z-index: -1;    /* Push it behind all other content */
+            pointer-events: none; /* Allows clicks to pass through to elements beneath */
+        }
+
+        /* --- Semantic Layout Styling --- */
+        header {
+            background-color: #003366; /* Dark blue header */
+            color: #fff; /* White text */
+            padding: 25px 40px;
+            text-align: center;
+        }
+
+        nav {
+            background-color: #333; /* Dark navigation bar */
+            padding: 10px;
+            text-align: center;
+            position: sticky; /* Makes the nav bar stick to the top when scrolling */
+            top: 0;
+            z-index: 100; /* Ensure nav is above other content */
+        }
+
+        /* Navigation links (Internal Links) */
+        nav a {
+            color: #f2f2f2;
+            padding: 14px 20px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            background-color: #ddd;
+            color: #333;
+        }
+
+        /* Main content sections */
+        section {
+            padding: 20px 40px;
+            margin: 20px auto;
+            max-width: 900px;
+            background-color: #ffffff; /* White background for content */
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative; /* Ensure content is above canvas */
+            z-index: 1; /* Ensure content is above canvas */
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #003366; /* Matching dark blue footer */
+            color: #ffffff;
+            margin-top: 30px;
+            position: relative; /* Ensure footer is above canvas */
+            z-index: 1; /* Ensure footer is above canvas */
+        }
+
+        /* --- Content Styling --- */
+        Section h1, h2, h3 { /* Removed 'Section' prefix */
+            color: #003366; /* Header text color */
+        }
+
+        /* Profile Image Styling */
+        .profile-photo {
+            width: 150px; /* Perfect size */
+            height: 150px;
+            border-radius: 50%; /* Makes it circular */
+            object-fit: cover; /* Ensures image covers the area without distortion */
+            float: right; /* Floats the image to the right */
+            margin: 0 0 15px 25px; /* Top Right Bottom Left margin */
+            border: 3px solid #0055aa; /* Optional: adds a border */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2); /* Optional: adds a subtle shadow */
+        }
+
+        /* Clear float after profile photo */
+        .about-content::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4; /* Light grey table header */
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Ensures padding doesn't affect width */
+        }
+
+        button {
+            background-color: #003366;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0055aa;
+        }
+
+        /* --- Certificate Section Styling --- */
+        .certificate-gallery {
+            display: grid;
+            /* Creates a responsive grid that fits as many 250px cards as it can */
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px; /* Space between cards */
+            margin-top: 20px;
+        }
+
+        .certificate-card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .certificate-card:hover {
+            transform: translateY(-5px); /* Lifts the card on hover */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .certificate-card h3 {
+            font-size: 1.1rem;
+            margin-top: 0;
+            color: #003366; /* Match other headings */
+            min-height: 44px; /* Gives 2 lines of space for titles */
+        }
+
+        .certificate-preview {
+            width: 100%;
+            height: 180px; /* Fixed height for a uniform look */
+            object-fit: cover; /* Scales image to fit, may crop */
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+        }
+
+        .view-btn {
+            display: inline-block;
+            background-color: #003366;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none; /* Remove underline from link */
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .view-btn:hover {
+            background-color: #0055aa;
+        }
+
+        /* --- Footer Icon Styling --- */
+        footer .fa-brands {
+            font-size: 2.2rem;     /* Makes the icons larger */
+            color: #ffffff;      /* Sets the icon color to white */
+            margin: 0 12px;      /* Adds spacing between icons */
+            padding-bottom: 10px;/* Adds some space below them */
+            transition: color 0.3s ease; /* Smooth color change on hover */
+        }
+
+        footer .fa-brands:hover {
+            color: #aaeaff;     /* Light blue hover color */
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="backgroundCanvas"></canvas>
+
+    <header>
+        <h1><b>Rishabh Raj's Personal Portfolio</b></h1>
+        <p>Welcome to my personal website and showcase.</p>
+    </header>
+
+    <nav>
+        <a href="#about">About Me</a>
+        <a href="#skills">Skills</a>
+        <a href="#certificates">Certificates</a>
+        <a href="#contact">Contact</a>
+    </nav>
+
+    <section id="about">
+        <h2><b><u>About Me</u></b></h2>
+        <div class="about-content">
+            <img src="./PersonalPic.jpg" alt="Rishabh Raj Profile Photo" class="profile-photo">
+            <p>
+                Hello! I'm <b><i>Rishabh</i></b>, a web developer and lifelong learner. I specialize in front-end development and an enthusiast on learning back-end development
+                and love building applications that are both functional and beautiful.
+            </p>
+            <p>
+                I am passionate about creating intuitive user experiences and efficient, scalable web applications. My journey in tech is driven by curiosity and a desire to build impactful solutions.
+            </p>
+        </div>
+
+        <h3><b><u>My Strengths</u></b></h3>
+        <ol>
+            <li>Creative Problem-Solving</li>
+            <li>Detail-Oriented</li>
+            <li>Team Collaboration</li>
+            <li>Adaptability</li>
+        </ol>
+
+        <h3><b><u>My Hobbies</u></b></h3>
+        <ul>
+            <li>Photography</li>
+            <li>Watching World Politics</li>
+            <li>Playing Badminton</li>
+            <li>Reading Tech Blogs</li>
+        </ul>
+    </section>
+
+    <section id="skills">
+        <h2><b><u>My Skills</u></b></h2>
+        <p>Here is a summary of my technical proficiency.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Technology</th>
+                    <th>Proficiency Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>HTML5</td>
+                    <td>Intermediate</td>
+                </tr>
+                <tr>
+                    <td>CSS3 (Flexbox, Grid)</td>
+                    <td>Intermediate</td>
+                </tr>
+                <tr>
+                    <td>JavaScript (ES6+)</td>
+                    <td>Beginner</td>
+                </tr>
+                <tr>
+                    <td>Python</td>
+                    <td>Intermediate</td>
+                </tr>
+                <tr>
+                    <td>C++</td>
+                    <td>Intermediate</td>
+                </tr>
+                <tr>
+                    <td>Git/GitHub</td>
+                    <td>Intermediate</td>
+                </tr>
+                <tr>
+                    <td>SQL</td>
+                    <td>Intermediate</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section id="certificates">
+        <h2><b><u>Licenses & Certificates</u></b></h2>
+        <p>Here are some of the certifications I've earned.</p>
+        
+        <div class="certificate-gallery">
+            
+            <div class="certificate-card">
+                <h3>Python Essentials</h3>
+                <img src="./Certificate_Python_Essentials.png" 
+                     alt="Python Essentials Certificate Preview" 
+                     class="certificate-preview">
+                <a href="./Certificate_Python_Essentials.png" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="view-btn">View Certificate</a>
+            </div>
+
+            <div class="certificate-card">
+                <h3>Fundamentals in AI & ML</h3>
+                <img src="./Certificate_Fundamentals In AI & ML.png" 
+                     alt="Fundamentals in AI & ML Certificate Preview" 
+                     class="certificate-preview">
+                <a href="./Certificate_Fundamentals In AI & ML.png" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="view-btn">View Certificate</a>
+            </div>
+
+            <div class="certificate-card">
+                <h3>NPTEL Cloud Computing Certificate</h3>
+                <img src="./NPTEL_Cloud_Computing_Certificate.png" 
+                     alt="NPTEL Cloud Computing Certificate Preview" 
+                     class="certificate-preview">
+                <a href="./NPTEL_Cloud_Computing_Certificate.png" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="view-btn">View Certificate</a>
+            </div>
+
+            <div class="certificate-card">
+                <h3>MATLAB Onramp Certificate</h3>
+                <img src="./Matlab_Onramp_Certificate.png" 
+                     alt="MATLAB Onramp Certificate Preview" 
+                     class="certificate-preview">
+                <a href="./Matlab_Onramp_Certificate.png" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="view-btn">View Certificate</a>
+            </div>
+
+            <div class="certificate-card">
+                <h3>AMAZON Q Certificate</h3>
+                <img src="./AmazonQ Certificate.png" 
+                     alt="AMAZON Q Certificate Preview" 
+                     class="certificate-preview">
+                <a href="./AmazonQ Certificate.png" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="view-btn">View Certificate</a>
+            </div>
+
+        </div>
+    </section>
+
+
+    <section id="contact">
+        <h2><b><u>Contact Me</u></b></h2>
+        <p>Have a question or want to work together? Send me a message!</p>
+        
+        <form action="#" method="POST">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="user_name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="user_email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Message:</label>
+                <textarea id="message" name="user_message" rows="6" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit">Send Message</button>
+            </div>
+        </form>
+    </section>
+
+    <footer>
+        <a href="https://www.linkedin.com/in/rishabh-raj24" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-linkedin"></i>
+        </a>
+        
+        <a href="https://www.github.com/Rishabh751" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-github"></i>
+        </a>
+    </footer>
+
+    <script>
+        // Get the canvas element and its context
+        var canvas = document.getElementById("backgroundCanvas");
+        var ctx = canvas.getContext("2d");
+
+        // Function to set canvas size to fill the window
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            drawBackgroundArt(); // Redraw art when resized
+        }
+
+        // Function to draw simple background art (random circles)
+        function drawBackgroundArt() {
+            // Clear the canvas before drawing new shapes
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Set a translucent color for the circles
+            ctx.fillStyle = "rgba(0, 51, 102, 0.08)"; // Very light blue-grey
+
+            // Draw a few random circles
+            for (let i = 0; i < 30; i++) { // You can adjust the number of circles
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+                let radius = Math.random() * 30 + 10; // Circles between 10 and 40px radius
+
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw some random rectangles too for variety
+            ctx.fillStyle = "rgba(170, 234, 255, 0.05)"; // Even lighter blue
+            for (let i = 0; i < 20; i++) {
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+                let width = Math.random() * 80 + 30;
+                let height = Math.random() * 80 + 30;
+
+                ctx.fillRect(x, y, width, height);
+            }
+        }
+
+        // Event listeners
+        window.addEventListener("resize", resizeCanvas);
+        document.addEventListener("DOMContentLoaded", function() {
+            resizeCanvas(); // Initial draw when the page loads
+        });
+    </script>
+
+</body>
+</html>
